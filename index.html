@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="si">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A/L Exam Countdown</title>
+<style>
+:root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--glass: rgba(255,255,255,0.04)}
+*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,'Noto Sans Sinhala',sans-serif}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#071026 0%, #0b1630 100%);color:#e6eef6;padding:18px}
+.container{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:1.25rem;margin:0}
+p.lead{margin:6px 0 18px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+.small{font-size:0.85rem;color:var(--muted)}
+label{display:block;font-size:0.85rem;margin-bottom:6px}
+input[type=text], input[type=date], input[type=time]{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--card);color:inherit}
+button{background:var(--accent);border:none;color:#042024;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+ul{padding:0;margin:0;list-style:none}
+.exam-list{max-height:60vh;overflow:auto}
+.exam-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;margin-bottom:8px;background:var(--glass)}
+.meta{font-size:0.9rem}
+.countdown{font-family:monospace;font-weight:700}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.footer{margin-top:14px;text-align:center;color:var(--muted);font-size:0.85rem}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}.container{padding:12px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div>
+    <h1>A/L Exam Countdown</h1>
+    <p class="lead">2025 A/L විභාගය — start: <strong>2025-11-10</strong> end: <strong>2025-12-05</strong></p>
+  </div>
+  <div class="small">Made for Lakshitha • Responsive • Save locally</div>
+</header>
+<div style="height:12px"></div>
+
+<div class="grid">
+<div>
+  <!-- Next Exam Card -->
+  <div class="card">
+    <h3 style="margin-top:0">Next exam</h3>
+    <div id="nextCard" class="card" style="padding:12px;background:linear-gradient(180deg,rgba(6,182,212,0.06),rgba(6,182,212,0.02))">
+      <div id="nextSub" style="font-size:1.05rem;font-weight:700">No subjects added yet</div>
+      <div style="height:8px"></div>
+      <div id="nextCountdown" class="countdown">-- days --:--:--</div>
+    </div>
+  </div>
+
+  <!-- Manage Subjects -->
+  <div style="height:12px"></div>
+  <div class="card">
+    <h3 style="margin-top:0">Manage subjects & dates & time</h3>
+    <div class="small">Type each subject and assign a date and exam time. Multiple subjects per day allowed.</div>
+    <div style="height:8px"></div>
+    <label>Subject name</label>
+    <input id="subjectName" type="text" placeholder="e.g., Art History" />
+    <label>Exam date (YYYY-MM-DD)</label>
+    <input id="subjectDate" type="date" value="2025-11-10" />
+    <label>Exam time (HH:MM)</label>
+    <input id="subjectTime" type="time" value="09:00" />
+    <div style="height:8px"></div>
+    <div class="controls">
+      <button id="addBtn">Add / Update</button>
+      <button id="genBtn" style="background:#efb400;color:#072">Generate dates from range</button>
+      <button id="clearBtn" style="background:#e74c3c">Clear all</button>
+      <button id="exportBtn" style="background:#0ea5a4">Export JSON</button>
+      <button id="importBtn" style="background:#8b5cf6">Import JSON</button>
+    </div>
+    <div style="height:12px"></div>
+    <div class="small">Start date: <input id="startDate" type="date" value="2025-11-10" /> &nbsp; End date: <input id="endDate" type="date" value="2025-12-05" /></div>
+    <div style="height:10px"></div>
+    <div class="small">Note: This exam runs from 2025-11-10 to 2025-12-05. <span id="computedDays">...</span> days inclusive.</div>
+  </div>
+
+  <!-- All Exams List -->
+  <div style="height:12px"></div>
+  <div class="card">
+    <h3 style="margin-top:0">All exams</h3>
+    <div class="exam-list" id="examList"></div>
+  </div>
+
+  <!-- Current Usage -->
+  <div style="height:12px"></div>
+  <div class="card">
+    <h3>Current Usage</h3>
+    <p class="small">
+      Total subjects added: <span id="subjectCount">0</span><br>
+      Total unique users (simulated): <span id="userCount">1</span>
+    </p>
+  </div>
+
+  <!-- Official PDF Link -->
+  <div style="height:12px"></div>
+  <div class="card">
+    <h3>Official A/L 2025 Time Table PDF</h3>
+    <p class="small">
+      සම්පූර්ණ නිල විෂය ලැයිස්තුව සහ වේලාවන් සඳහා, 
+      <a href="https://www.doenets.lk/images/resources/NEWS/AL%20Time%20Table%202025_1755235159873.pdf" target="_blank">
+        Click here to view/download official PDF
+      </a>.
+    </p>
+  </div>
+
+  <!-- AI Q&A Placeholder -->
+  <div style="height:12px"></div>
+  <div class="card">
+    <h3 style="margin-top:0">AI Help (Coming Soon)</h3>
+    <input id="aiQuestion" type="text" placeholder="Type your question here..." />
+    <button id="askBtn" style="margin-top:6px;">Ask AI</button>
+    <div id="aiAnswer" class="small" style="margin-top:8px;color:#a0f;">
+      Students will be able to get guidance securely via AI.
+    </div>
+  </div>
+</div>
+
+<aside>
+<div class="card">
+  <h3 style="margin-top:0">Quick info</h3>
+  <div class="small">Countdown shows remaining time until exam day. Multiple subjects can exist per day.</div>
+</div>
+
+<div class="footer">
+📞 +94 72 890 6865 | 💬 <a href="https://wa.me/94728906865" target="_blank">WhatsApp</a> | ✉️ <a href="mailto:lakshitha6292@gmail.com">Email</a> | 📘 <a href="https://www.facebook.com/share/1BZgMcuZip/" target="_blank">Facebook</a>
+</div>
+</aside>
+</div>
+
+<canvas id="confettiCanvas" style="position:fixed;left:0;top:0;pointer-events:none;display:none"></canvas>
+
+<script>
+// Subjects & countdown logic
+const qs=s=>document.querySelector(s);
+let subjects=[];
+function save(){ localStorage.setItem('al_subjects_manual', JSON.stringify(subjects)); }
+function load(){ const raw=localStorage.getItem('al_subjects_manual'); subjects=raw?JSON.parse(raw):[]; }
+
+function renderList(){
+  const el=qs('#examList'); el.innerHTML='';
+  subjects.sort((a,b)=>new Date(a.date+'T'+(a.time||'00:00'))-new Date(b.date+'T'+(b.time||'00:00'))).forEach(s=>{
+    const item=document.createElement('div'); item.className='exam-item';
+    const left=document.createElement('div'); left.innerHTML=`<div style="font-weight:700">${s.name}</div><div class="small">${s.date} ${s.time}</div>`;
+    const right=document.createElement('div'); right.className='meta';
+    right.innerHTML=`<div class="countdown" data-date="${s.date}" data-time="${s.time}" data-name="${s.name}">--</div>`;
+    item.appendChild(left); item.appendChild(right); el.appendChild(item);
+  });
+  updateCounts();
+}
+
+function updateCountdowns(){
+  const now=new Date();
+  subjects.forEach(s=>{
+    const el=document.querySelector(`.countdown[data-date="${s.date}"][data-time="${s.time}"][data-name="${s.name}"]`);
+    const target=new Date(s.date+'T'+(s.time||'00:00')); 
+    let diff=Math.floor((target-now)/1000);
+    if(diff<=0){ el.textContent='EXAM TIME!'; showCongrats(s);}
+    else { const days=Math.floor(diff/86400); diff%=86400; const h=Math.floor(diff/3600); diff%=3600; const m=Math.floor(diff/60); const s2=diff%60;
+      el.textContent=`${days}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s2).padStart(2,'0')}`;
+    }
+  });
+  qs('#computedDays').textContent = daysInclusive(qs('#startDate').value, qs('#endDate').value) + ' (inclusive)';
+}
+
+function daysInclusive(start,end){ const a=new Date(start), b=new Date(end); return Math.floor((b-a)/(1000*60*60*24))+1; }
+
+function showCongrats(sub){
+  const canvas=qs('#confettiCanvas'); canvas.style.display='block'; canvas.width=innerWidth; canvas.height=innerHeight;
+  const ctx=canvas.getContext('2d'); let pieces=[]; for(let i=0;i<120;i++) pieces.push({x:Math.random()*canvas.width,y:Math.random()*-canvas.height,h:Math.random()*12+6,vy:Math.random()*3+2,rx:Math.random()*360});
+  let frames=0; const anim=()=>{ frames++; ctx.clearRect(0,0,canvas.width,canvas.height); for(const p of pieces){ p.y+=p.vy; p.x+=Math.sin(frames/10+p.y/50)*2; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rx*(Math.PI/180)); ctx.fillRect(-3,-p.h/2,6,p.h); ctx.restore(); } if(frames<180) requestAnimationFrame(anim); else { canvas.style.display='none'; ctx.clearRect(0,0,canvas.width,canvas.height); } }; anim();
+  alert(`Good luck — ${sub.name} is today (${sub.date} ${sub.time})!\n\nසියලුම A/L විභාග කරන්නන්ට සුබ පැතුම්!`);
+}
+
+// Usage count
+function updateCounts() {
+  qs('#subjectCount').textContent = subjects.length;
+  let visits = localStorage.getItem('al_user_visits');
+  if(!visits) visits = 1; else visits = parseInt(visits)+1;
+  localStorage.setItem('al_user_visits', visits);
+  qs('#userCount').textContent = visits;
+}
+
+// Events
+qs('#addBtn').addEventListener('click', ()=>{
+  const name=qs('#subjectName').value.trim();
+  const date=qs('#subjectDate').value;
+  const time=qs('#subjectTime').value||"00:00";
+  if(!name||!date){ alert('Set subject and date'); return; }
+  subjects.push({name,date,time}); save(); renderList();
+});
+
+qs('#clearBtn').addEventListener('click', ()=>{ if(confirm('Clear all subjects?')){ subjects=[]; save(); renderList(); } });
+qs('#genBtn').addEventListener('click', ()=>{
+  const s=qs('#startDate').value, e=qs('#endDate').value; if(!s||!e){ alert('Set dates'); return;}
+  const start=new Date(s), end=new Date(e);
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    const dateStr=d.toISOString().slice(0,10); if(!subjects.some(x=>x.date===dateStr)) subjects.push({name:'(set subject)',date:dateStr,time:'09:00'});
+  } save(); renderList();
+});
+
+qs('#exportBtn').addEventListener('click', ()=>{
+  const blob=new Blob([JSON.stringify({start:qs('#startDate').value,end:qs('#endDate').value,subjects},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='al_exam_schedule_manual.json'; a.click(); URL.revokeObjectURL(url);
+});
+
+qs('#importBtn').addEventListener('click', ()=>{
+  const input=document.createElement('input'); input.type='file'; input.accept='application/json'; input.onchange=e=>{ const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=ev=>{ try{ const data=JSON.parse(ev.target.result); if(data.subjects) subjects=data.subjects; if(data.start) qs('#startDate').value=data.start; if(data.end) qs('#endDate').value=data.end; save(); renderList(); }catch(err){alert('Invalid file');} }; r.readAsText(f);
+  }; input.click();
+});
+
+// AI placeholder
+qs('#askBtn').addEventListener('click', ()=>{
+  const q=qs('#aiQuestion').value.trim();
+  if(!q) return alert("Type a question first.");
+  qs('#aiAnswer').textContent="AI help will be available here soon. (Secure backend required)";
+});
+
+load(); renderList(); updateCountdowns(); setInterval(updateCountdowns,1000);
+</script>
+</body>
+</html>
